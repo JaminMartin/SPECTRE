@@ -1,2 +1,4 @@
-import tkinter as tkinter
-import IHR550_Driver as IHR550
+import tkinter as tk
+import matplotlib.pyplot as plt
+import numpy as np 
+import ttkbootstrap as tb
