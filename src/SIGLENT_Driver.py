@@ -3,7 +3,7 @@ class SiglentSDS2104X:
     '''
     Class to create user-fiendly interface with the SiglentSDS2104X scope.
     Has the get waveform subroutine for use once a connection has been established these functions can 
-    be used inside of the measurement class.
+    be used inside of the measurement file / GUI.
     note! cursors must be on for this method to work!
   
     '''
