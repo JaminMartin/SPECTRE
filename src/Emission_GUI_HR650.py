@@ -13,7 +13,7 @@ from ttkbootstrap.constants import *
 import ttkbootstrap as tb
 plt.style.use('dark_background')
 root = tb.Window(themename="dracula")
-root.title('Actuation Station')
+root.title('HR660 Control')
 
 
 
