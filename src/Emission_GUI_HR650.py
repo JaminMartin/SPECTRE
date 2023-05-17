@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import ttkbootstrap as tb
 import pandas as pd        
-
+from HR640_Driver import HR640_Spectrometer
 import matplotlib.pyplot as plt
 import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -12,7 +12,8 @@ import numpy as np
 from ttkbootstrap.constants import *
 import ttkbootstrap as tb
 plt.style.use('dark_background')
-root = tb.Window(themename="dracula")
+
+root = tb.Window(themename="dracula")    
 root.title('HR660 Control')
 
 
