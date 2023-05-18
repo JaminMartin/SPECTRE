@@ -74,6 +74,7 @@ def scan_range():
     start_wl = start_var.get()
     stop_wl = stop_var.get()
     step_wl = step_var.get()
+    print(validate_number(step_wl))
     if validate_number(start_wl) == True and validate_number(stop_wl) == True and validate_number(step_wl) == True:
         s_range = np.arange(float(start_wl),float(stop_wl),float(step_wl))
     else:
@@ -86,6 +87,9 @@ def start():
         if interupt_type == 'stop':
             y_to_plot = []
             x_to_plot = []
+            if not scan.running:
+                scan.running = True
+                scan()
         else:    
             if not scan.running:
                 scan.running = True
@@ -103,42 +107,38 @@ def stop():
 
 
 def scan():
-    try:
-        scan_range()
-        global s_range
-        global iterator
-        update_plot()
-        if scan.i < len(s_range):
-            if scan.running:
-                
-                scan.i += 1
-                iterator += 1
-                master.after(1000, scan)  
-        else:
-            scan.running = False 
-            print('scan finished')
-    except:
-        scan.running = False   
-        pass   
+
+    global s_range
+    global iterator
+    scan_range()
+    print(s_range)
+    if scan.i < len(s_range):
+        if scan.running:
+            update_plot()
+            scan.i += 1
+            iterator += 1
+            master.after(1000, scan)  
+    else:
+        scan.running = False 
+        print('scan finished')
+
  
 
 def update_plot():
-    try:
-        global s_range
-        global x_to_plot
-        global y_to_plot
-    
-        x = s_range[iterator]
-        y = s_range[iterator]*1
-        x_to_plot.append(x)
-        y_to_plot.append(y)
-        line.set_ydata(y_to_plot)
-        line.set_xdata(x_to_plot)
-        ax.draw_artist(ax.patch)
-        ax.draw_artist(line)
-        fig.canvas.blit(ax.bbox) 
-    except:
-        pass    
+    global s_range
+    global x_to_plot
+    global y_to_plot
+
+    x = s_range[iterator]
+    y = s_range[iterator]*1
+    x_to_plot.append(x)
+    y_to_plot.append(y)
+    line.set_ydata(y_to_plot)
+    line.set_xdata(x_to_plot)
+    ax.draw_artist(ax.patch)
+    ax.draw_artist(line)
+    fig.canvas.blit(ax.bbox) 
+  
 
 # creating Tk window and Tk Vars
 master = tb.Window(themename="dracula")  
