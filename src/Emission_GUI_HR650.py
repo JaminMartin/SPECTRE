@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from ttkbootstrap.constants import *
 from time import sleep
-
+from Helper_funcs import random_spectra
 
 """
 Def Plot
@@ -21,8 +21,13 @@ ax.clear
 ax.set_facecolor('#282a36')
 x = 0
 y = 0
+ax.set_xlabel('Wavelength (nm)')
+ax.set_ylabel('Intensity (Arb. Units.)')
+ax.xaxis.label.set_color('#ffb86c')
+ax.yaxis.label.set_color('#ffb86c')
 ax.set_xlim(500,600)
 ax.set_ylim(0,1000)
+fig.tight_layout()
 line, = ax.plot(x, y, color = '#bd93f9')
 fig.patch.set_facecolor('#282a36')
 ax.tick_params(color='#ffb86c', labelcolor='#ffb86c')
@@ -38,6 +43,7 @@ iterator = 0
 y_to_plot = []
 x_to_plot = []
 interupt_type = None
+spectra = None
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
     if x.isdigit():
@@ -52,8 +58,10 @@ def get_spectrometer_status():
     spectrometer = HR640_Spectrometer(emulate=True)
     if spectrometer.emulation == True:
       status_var.set('Emulated')
+      get_spectrometer_wl()
     else:
      status_var.set('Initialised')  
+     get_spectrometer_wl()
     
          
        
@@ -64,8 +72,11 @@ def get_spectrometer_wl():
 
 def go_to_wavelength():
     go_to = go_to_var.get()
+    global spectrometer
     if validate_number(go_to) == True:
         spectrometer.goto_wavelength(go_to)
+        wl = spectrometer.get_wavelength()   
+        current_wl_var.set(wl)
     else:
         pass    
 def scan_range():
@@ -74,53 +85,80 @@ def scan_range():
     start_wl = start_var.get()
     stop_wl = stop_var.get()
     step_wl = step_var.get()
-    print(validate_number(step_wl))
-    if validate_number(start_wl) == True and validate_number(stop_wl) == True and validate_number(step_wl) == True:
+    if validate_number(start_wl) == True and validate_number(stop_wl) == True:
         s_range = np.arange(float(start_wl),float(stop_wl),float(step_wl))
     else:
         print('invalid inputs')    
 
 def start():
-        global interupt_type 
-        global x_to_plot
-        global y_to_plot
-        if interupt_type == 'stop':
-            y_to_plot = []
-            x_to_plot = []
-            if not scan.running:
-                scan.running = True
-                scan()
-        else:    
-            if not scan.running:
-                scan.running = True
-                scan()
+        if scan.running == True: 
+            pass 
+        else:
+            global interupt_type 
+            global x_to_plot
+            global y_to_plot
+            global s_range
+            global spectrometer 
+            global spectra 
+            scan_range()
+            if spectrometer.emulation == True and interupt_type != 'pause':
+                spectra = random_spectra(s_range)
+            else: 
+                pass    
+            if interupt_type == 'stop' or interupt_type == 'finished':
+                y_to_plot = []
+                x_to_plot = []
+                if not scan.running:
+                    scan.running = True
+                    scan()
+            elif interupt_type == 'pause':
+                if not scan.running:     
+                    scan.running = True
+                    scan()   
+            else:    
+                if not scan.running:
+                    scan.running = True
+                    scan()
         
 
 def stop():
     global interupt_type
     interupt_type = 'stop'
     scan.running = False 
-    start_var.set('')
-    stop_var.set('')
-    step_var.set('')
 
+def pause():
+    global interupt_type
+    interupt_type = 'pause'
+    scan.running = False 
 
 
 def scan():
-
+    global interupt_type
     global s_range
     global iterator
-    scan_range()
-    print(s_range)
-    if scan.i < len(s_range):
-        if scan.running:
-            update_plot()
-            scan.i += 1
-            iterator += 1
-            master.after(1000, scan)  
+  
+    if scan.i < len(s_range) and scan.running == True:
+
+        spectrometer.goto_wavelength(s_range[iterator])
+        update_plot()
+        get_spectrometer_wl()
+        scan.i += 1
+        iterator += 1
+        master.after(10, scan)  
+    elif scan.running == False and interupt_type == 'stop':
+        print('Scan stopped saving data regardless...')
+        iterator = 0
+        scan.i = 0
+
+    elif scan.i < len(s_range) and interupt_type == 'pause':
+        pass   
+
     else:
         scan.running = False 
+        interupt_type = 'finished'
         print('scan finished')
+        iterator = 0
+        scan.i = 0
 
  
 
@@ -130,7 +168,7 @@ def update_plot():
     global y_to_plot
 
     x = s_range[iterator]
-    y = s_range[iterator]*1
+    y = spectra[iterator]
     x_to_plot.append(x)
     y_to_plot.append(y)
     line.set_ydata(y_to_plot)
@@ -169,7 +207,7 @@ spec_init_button = tb.Button(pane, text='Initialise Spectrometer', command = get
 spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=0, column=1, padx=5, pady=5)
 
 
-spec_wl_button = tb.Button(pane, text='Get Current Wavelength', command = get_spectrometer_wl).grid(row=1, column=0, padx=5, pady=5)
+spec_wl_button = tb.Label(pane, text='Current Wavelength:',).grid(row=1, column=0, padx=5, pady=5)
 current_wl_label = tb.Label(pane,textvariable=current_wl_var,).grid(row=1, column=1, padx=5, pady=5)
 
 
@@ -177,14 +215,17 @@ spec_go_button = tb.Button(pane, text='Go to Wavelength', command = go_to_wavele
 go_to_entry = tb.Entry(pane, textvariable = go_to_var).grid(row=2, column=1, padx=5, pady=5)
 
 
-start_scan = tb.Button(pane, text='Start Scan',command = start ).grid(row=6, column=0, padx=5, pady=5)
-stop_scan = tb.Button(pane, text='Stop Scan',command = stop).grid(row=6, column=1, padx=5, pady=5)
+
 start_params = tb.Label(pane,text='Start Wavelength',).grid(row=3, column=0, padx=5, pady=5)
 start_entry = tb.Entry(pane, textvariable = start_var).grid(row=3, column=1, padx=5, pady=5)
 stop_params = tb.Label(pane,text='Stop Wavelength',).grid(row=4, column=0, padx=5, pady=5)
 stop_entry = tb.Entry(pane, textvariable = stop_var).grid(row=4, column=1, padx=5, pady=5)
 step_params = tb.Label(pane,text='Step Size',).grid(row=5, column=0, padx=5, pady=5)
 step_entry = tb.Entry(pane, textvariable = step_var).grid(row=5, column=1, padx=5, pady=5)
+start_scan = tb.Button(pane, text='Start Scan',command = start ).grid(row=6, column=0, padx=5, pady=5)
+stop_scan = tb.Button(pane, text='Stop Scan',command = stop).grid(row=6, column=1, padx=5, pady=5)
+pause_scan = tb.Button(pane, text='Pause Scan',command = pause ).grid(row=7, column=0, padx=5, pady=5)
+
 """
 Define Figure params
 """
@@ -193,7 +234,7 @@ Define Figure params
 
 canvas = FigureCanvasTkAgg(fig, master=pane2)
 canvas.draw()
-canvas.get_tk_widget().grid(row =7)
+canvas.get_tk_widget().grid(row =7,column=1)
 phase = 0
 # Execute Tkinter
 scan.i = 0  
