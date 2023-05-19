@@ -4,11 +4,11 @@ import scipy.stats as stats
 import matplotlib.pyplot as plt
 
 def Gamma2sigma(Gamma):
-    '''Function to convert FWHM (Gamma) to standard deviation (sigma)'''
+    '''Function to convert FWHM (Gamma) to standard deviation (sigma) for stats.norm'''
     return Gamma * np.sqrt(2) / ( np.sqrt(2 * np.log(2)) * 2 )
 
 def random_spectra(X):
-
+    #generates a random spectra (optimised for nm) for the scaned wavelength range. Generates 5 peaks, though they may not be resolved
     sigma1 = Gamma2sigma(rd.uniform(0.1, 10)) 
     sigma2 = Gamma2sigma(rd.uniform(0.1, 10)) 
     sigma3 = Gamma2sigma(rd.uniform(0.1, 10)) 
