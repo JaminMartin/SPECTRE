@@ -1,5 +1,6 @@
 # Importing tkinter module
 import tkinter as tk
+from tkinter import filedialog
 import numpy as np 
 import ttkbootstrap as tb
 import pandas as pd        
@@ -9,8 +10,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from ttkbootstrap.constants import *
 from time import sleep
-from Helper_funcs import random_spectra
-
+from Helper_funcs import random_spectra , save_data
+import time
+import datetime
+from datetime import date
 """
 Def Plot
 """
@@ -44,6 +47,13 @@ y_to_plot = []
 x_to_plot = []
 interupt_type = None
 spectra = None
+start_time = None
+stop_time = None
+
+def get_save_direct():
+    save_directory = filedialog.askdirectory()
+    save_var.set(save_directory)
+
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
     if x.isdigit():
@@ -63,7 +73,11 @@ def get_spectrometer_status():
      status_var.set('Initialised')  
      get_spectrometer_wl()
     
-         
+def save():
+    save_file = save_file_var.get()
+    save_folder = save_folder_var.get
+    save_data(save_file,save_folder,start_time,stop_time)
+
        
 def get_spectrometer_wl():
     global spectrometer
@@ -100,6 +114,7 @@ def start():
             global s_range
             global spectrometer 
             global spectra 
+            global start_time
             scan_range()
             if spectrometer.emulation == True and interupt_type != 'pause':
                 spectra = random_spectra(s_range)
@@ -110,6 +125,7 @@ def start():
                 x_to_plot = []
                 if not scan.running:
                     scan.running = True
+                    start_time = str(datetime.datetime.now())
                     scan()
             elif interupt_type == 'pause':
                 if not scan.running:     
@@ -118,13 +134,17 @@ def start():
             else:    
                 if not scan.running:
                     scan.running = True
+                    start_time = str(datetime.datetime.now())
                     scan()
         
 
 def stop():
     global interupt_type
+    global stop_time
     interupt_type = 'stop'
     scan.running = False 
+    stop_time = str(datetime.datetime.now())
+    save()
 
 def pause():
     global interupt_type
@@ -154,9 +174,12 @@ def scan():
         pass   
 
     else:
+        global stop_time
         scan.running = False 
         interupt_type = 'finished'
         print('scan finished')
+        stop_time = str(datetime.datetime.now())
+        save()
         iterator = 0
         scan.i = 0
 
@@ -164,7 +187,7 @@ def scan():
 
 def update_plot():
     global s_range
-    global x_to_plot
+    global x_to_plot 
     global y_to_plot
 
     x = s_range[iterator]
@@ -192,7 +215,11 @@ stop_var.set('')
 step_var = tk.StringVar()  
 step_var.set('')
 
+save_folder_var = tk.StringVar()  
+save_folder_var.set('')
 
+save_file_var = tk.StringVar()  
+save_file_var.set('')
 
 go_to_var = tk.StringVar(value='')
 pane = tk.Frame(master)
@@ -226,9 +253,15 @@ start_scan = tb.Button(pane, text='Start Scan',command = start ).grid(row=6, col
 stop_scan = tb.Button(pane, text='Stop Scan',command = stop).grid(row=6, column=1, padx=5, pady=5)
 pause_scan = tb.Button(pane, text='Pause Scan',command = pause ).grid(row=7, column=0, padx=5, pady=5)
 
-"""
+save_direct_button = tb.Button(pane, text='::', command = get_save_direct ).grid(row=8, column=3, padx=5, pady=5)
+save_direct_label1 = tb.Label(pane,textvariable=save_folder_var).grid(row=8, column=1, padx=5, pady=5)
+save_direct_label2 = tb.Label(pane,text = 'Save folder location:',).grid(row=8, column=0, padx=5, pady=5)
+file_name_label = tb.Label(pane,text = 'Save file name:',).grid(row=9, column=0, padx=5, pady=5)
+file_name_entry = tb.Entry(pane, textvariable = save_file_var,).grid(row=9, column=1, padx=5, pady=5)
+"""""
 Define Figure params
 """
+
 
 
 
