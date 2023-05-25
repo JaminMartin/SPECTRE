@@ -46,7 +46,7 @@ iterator = 0
 y_to_plot = []
 x_to_plot = []
 interupt_type = None
-spectra = None
+spectra = []  
 start_time = None
 stop_time = None
 
