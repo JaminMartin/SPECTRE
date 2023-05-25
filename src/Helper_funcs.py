@@ -3,6 +3,10 @@ import random as rd
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import os
+import time
+import datetime
+from datetime import date
+
 def Gamma2sigma(Gamma):
     '''Function to convert FWHM (Gamma) to standard deviation (sigma) for stats.norm'''
     return Gamma * np.sqrt(2) / ( np.sqrt(2 * np.log(2)) * 2 )
@@ -24,7 +28,7 @@ def random_spectra(X):
     LINE_TOT = LINE1 + LINE2 + LINE3 + LINE4 + LINE5
     return LINE_TOT
 
-def name_checker(self,fname_path):
+def name_checker(fname_path):
     """
     Get the path to a filename which does not exist by incrementing path.
 
@@ -45,6 +49,19 @@ def name_checker(self,fname_path):
         new_fname = "{}-{}{}".format(filename, i, file_extension)
     return  os.path.basename(new_fname) 
 
+def exp_auto_name():
+    now = datetime.datetime.now()
+    now_str = str(now)
+    substitutions = [
+        (":", "_"),
+        (".", "_"),
+        (" ", "_"),
+        ("-", "_")]
+
+    for search, replacement in substitutions:
+        now_str = now_str.replace(search, replacement)    
+    experiment_name = 'experiment_' + now_str
+    return experiment_name
 
 def save_data(experiment_name, data_path, experiment_start ,experiment_completed):
     '''
@@ -58,7 +75,7 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
     The save portion will try save to the specified directory, if it cant - it will attempt to dump it into the current working directory    
     '''
     experiment_name = experiment_name +'.txt'
-    experiment_name = name_checker(data_path + experiment_name)
+    experiment_name = name_checker((data_path + '/' + experiment_name))
     out = 'Experiment Name: '+ experiment_name + '\n'
     out +='Date Start: '+ experiment_start + '\n'
     out +='Date Completed: '+ experiment_completed + '\n'
@@ -68,7 +85,7 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
     out += '%============================================%\nExperimental Data\n%============================================%\n\n\n'
     #to_save_data = data_prep(data)
     try:
-        tfile = open(data_path + experiment_name, 'a')
+        tfile = open(data_path  + '/' + experiment_name, 'a')
         tfile.write(out)
         tfile.close()
     except IOError as e:
@@ -76,9 +93,9 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
         print('Saving to current working directory instead')
         pass
         try:
-            data_path = os.path.abspath(os.getcwd()) + '\\'
-            experiment_name = name_checker(data_path + experiment_name)
-            tfile = open(data_path + experiment_name, 'a')
+            data_path = os.path.abspath(os.getcwd())
+            experiment_name = name_checker(data_path   + '/' + experiment_name)
+            tfile = open(data_path  + '/' + experiment_name, 'a')
             tfile.write(out)
             tfile.close()
         except IOError as e:

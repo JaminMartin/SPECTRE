@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from ttkbootstrap.constants import *
 from time import sleep
-from Helper_funcs import random_spectra , save_data
+from Helper_funcs import random_spectra , save_data, exp_auto_name
 import time
 import datetime
 from datetime import date
@@ -52,7 +52,7 @@ stop_time = None
 
 def get_save_direct():
     save_directory = filedialog.askdirectory()
-    save_var.set(save_directory)
+    save_folder_var.set(save_directory)
 
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
@@ -74,8 +74,14 @@ def get_spectrometer_status():
      get_spectrometer_wl()
     
 def save():
-    save_file = save_file_var.get()
-    save_folder = save_folder_var.get
+    save_file = str(save_file_var.get())
+    if save_file == '':
+        save_file = exp_auto_name()
+    else: 
+        pass    
+    print(save_file)
+    save_folder = str(save_folder_var.get())
+    print(save_folder)
     save_data(save_file,save_folder,start_time,stop_time)
 
        
