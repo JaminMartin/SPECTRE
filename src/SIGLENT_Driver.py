@@ -1,7 +1,8 @@
 import pyvisa
-class SiglentSDS2104X:
+import numpy as np
+class SiglentSDS2352XE:
     '''
-    Class to create user-fiendly interface with the SiglentSDS2104X scope.
+    Class to create user-fiendly interface with the SiglentSDS2352X-E scope.
     Has the get waveform subroutine for use once a connection has been established these functions can 
     be used inside of the measurement file / GUI.
     note! cursors must be on for this method to work!
@@ -12,14 +13,17 @@ class SiglentSDS2104X:
         self.resource_adress = 'not found'
         resources = rm.list_resources()
         for i in range(len(resources)):
-            my_instrument = rm.open_resource(resources[i])
-            query = my_instrument.query('*IDN?').strip()
-            #print(query)
-            if query == 'Siglent Technologies,SDS2104X Plus,SDS2PDDQ6R2565,5.0.1.5.2':
-                self.resource_adress = resources[i]
-                self.instrument = my_instrument
+            try:
+                my_instrument = rm.open_resource(resources[i])
+                query = my_instrument.query('*IDN?').strip()
+                #print(query)
+                if query == 'Siglent Technologies,SDS2352X-E,SDS2EDDQ6R0793,2.1.1.1.20 R3':
+                    self.resource_adress = resources[i]
+                    self.instrument = my_instrument
+            except:
+                pass        
         if self.resource_adress == 'not found':
-            print('Siglent Technologies,SDS2104X Plus not found, try reconecting. If issues persist, restart python')
+            print('Siglent Technologies,SDS2352X-E not found, try reconecting. If issues persist, restart python')
         
         return 
     def get_waveform(self,channel = 'c1'):
@@ -79,10 +83,16 @@ class SiglentSDS2104X:
         time_value = []
         for idx in range(0,len(volt_value)):
             volt_value[idx] = volt_value[idx]/25*float(vdiv)-float(ofst)
-            time_data = -(float(tdiv)*10/2)+idx*(1/sara) - horizontal_offset
+            time_data = -(float(tdiv)*14/2)+idx*(1/sara) - horizontal_offset
             time_value.append(time_data)
         
         volt_value = np.asarray(volt_value)
         time_value  = np.asarray(time_value)
         return time_value , volt_value  
 
+if __name__ == "__main__":
+    scope = SiglentSDS2352XE()
+    x, y = scope.get_waveform()
+    import matplotlib.pyplot as plt
+    plt.plot(x,y)
+    plt.show()
