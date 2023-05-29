@@ -145,12 +145,15 @@ def start():
         
 
 def stop():
-    global interupt_type
-    global stop_time
-    interupt_type = 'stop'
-    scan.running = False 
-    stop_time = str(datetime.datetime.now())
-    save()
+    if scan.running == False: 
+        pass 
+    else:
+        global interupt_type
+        global stop_time
+        interupt_type = 'stop'
+        scan.running = False 
+        stop_time = str(datetime.datetime.now())
+        save()
 
 def pause():
     global interupt_type
