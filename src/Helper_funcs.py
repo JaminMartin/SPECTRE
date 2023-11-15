@@ -6,6 +6,7 @@ import os
 import time
 import datetime
 from datetime import date
+import pandas as pd
 
 def Gamma2sigma(Gamma):
     '''Function to convert FWHM (Gamma) to standard deviation (sigma) for stats.norm'''
@@ -63,7 +64,7 @@ def exp_auto_name():
     experiment_name = 'experiment_' + now_str
     return experiment_name
 
-def save_data(experiment_name, data_path, experiment_start ,experiment_completed):
+def save_data(experiment_name, data_path, experiment_start ,experiment_completed, experimental_data):
     '''
     Sets up the data to be logged regarding the experiment, 'out' is the string to append to (with \n for a new line) 
     that will be written. Can add more things as we find the need. 
@@ -84,6 +85,8 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
     #out += config
     out += '%============================================%\nExperimental Data\n%============================================%\n\n\n'
     #to_save_data = data_prep(data)
+    out += experimental_data + '\n'
+
     try:
         tfile = open(data_path  + '/' + experiment_name, 'a')
         tfile.write(out)
@@ -102,3 +105,8 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
             print(e) 
             print('Files failed to save')
             pass
+
+def data_prep(experimental_data):
+    data = pd.DataFrame.from_dict(experimental_data)
+    data = data.to_string()
+    return data

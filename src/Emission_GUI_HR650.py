@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from ttkbootstrap.constants import *
 from time import sleep
-from Helper_funcs import random_spectra , save_data, exp_auto_name
+from Helper_funcs import random_spectra , save_data, exp_auto_name, data_prep
 import time
 import datetime
 from datetime import date
@@ -75,6 +75,10 @@ def get_spectrometer_status():
      get_spectrometer_wl()
     
 def save():
+    global x_to_plot
+    global y_to_plot
+    results = data_prep({'Amplitude': y_to_plot , 'Wavelength': x_to_plot})
+
     save_file = str(save_file_var.get())
     if save_file == '':
         save_file = exp_auto_name()
@@ -83,7 +87,7 @@ def save():
     print(save_file)
     save_folder = str(save_folder_var.get())
     print(save_folder)
-    save_data(save_file,save_folder,start_time,stop_time)
+    save_data(save_file, save_folder, start_time, stop_time, results)
 
        
 def get_spectrometer_wl():
