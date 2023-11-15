@@ -29,7 +29,7 @@ ax.set_ylabel('Intensity (Arb. Units.)')
 ax.xaxis.label.set_color('#ffb86c')
 ax.yaxis.label.set_color('#ffb86c')
 ax.set_xlim(500,600)
-ax.set_ylim(0,1000)
+ax.set_ylim(0,100)
 fig.tight_layout()
 line, = ax.plot(x, y, color = '#bd93f9')
 fig.patch.set_facecolor('#282a36')
@@ -49,6 +49,7 @@ interupt_type = None
 spectra = []  
 start_time = None
 stop_time = None
+init_graph = None
 
 def get_save_direct():
     save_directory = filedialog.askdirectory()
@@ -150,7 +151,9 @@ def stop():
     else:
         global interupt_type
         global stop_time
+        global init_graph
         interupt_type = 'stop'
+        init_graph = 'yes'
         scan.running = False 
         stop_time = str(datetime.datetime.now())
         save()
@@ -165,6 +168,7 @@ def scan():
     global interupt_type
     global s_range
     global iterator
+    global init_graph
   
     if scan.i < len(s_range) and scan.running == True:
 
@@ -186,6 +190,7 @@ def scan():
         global stop_time
         scan.running = False 
         interupt_type = 'finished'
+        init_graph = 'yes'
         print('scan finished')
         stop_time = str(datetime.datetime.now())
         save()
@@ -198,9 +203,80 @@ def update_plot():
     global s_range
     global x_to_plot 
     global y_to_plot
-
+    global interupt_type
+    global init_graph 
     x = s_range[iterator]
     y = spectra[iterator]
+
+    # Check if x or y is outside the current plot range
+    x_limits = np.array(ax.get_xlim())
+    y_limits = np.array(ax.get_ylim())
+    if init_graph == None or init_graph == "yes":
+        new_x_limits = [x, x + 100]
+        new_y_limits = [y, y + 100]
+
+        ax.set_xlim(new_x_limits)
+        ax.set_ylim(new_y_limits)
+
+        # Update x-axis labels
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))
+
+        # Update y-axis labels
+        for tick in ax.yaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))  
+
+        ax.figure.canvas.draw_idle()
+        ax.figure.canvas.flush_events()  
+        init_graph = "no"  
+
+
+    update_x_higher = x > x_limits[1]
+    update_y = y > y_limits[1]
+
+
+    
+    if update_x_higher and update_y:
+        # Update the plot limits
+        new_x_limits = [max(x_limits[0], x - 100), x_limits[1] + 100]
+        new_y_limits = [y_limits[0], max(y_limits[1], y + 100)] if update_y else y_limits
+
+        ax.set_xlim(new_x_limits)
+        ax.set_ylim(new_y_limits)
+
+        # Update x-axis labels
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))
+
+        # Update y-axis labels
+        for tick in ax.yaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))
+
+        # Draw the figure idle to update the plot and labels
+        ax.figure.canvas.draw_idle()
+        ax.figure.canvas.flush_events()
+
+    if update_y: 
+        new_y_limits = [y_limits[0], max(y_limits[1], y + 100)] if update_y else y_limits
+        ax.set_ylim(new_y_limits)
+        for tick in ax.yaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))
+
+        ax.figure.canvas.draw_idle()
+        ax.figure.canvas.flush_events()
+
+    if update_x_higher:
+        new_x_limits = [x_limits[0], max(x_limits[1], x + 100)] if update_x_higher else x_limits
+        ax.set_xlim(new_x_limits)
+        # Update x-axis labels
+        for tick in ax.xaxis.get_major_ticks():
+            tick.label1.set_text(str(int(tick.get_loc())))
+
+        # Draw the figure idle to update the plot and labels
+        ax.figure.canvas.draw_idle()
+        ax.figure.canvas.flush_events()
+
+
     x_to_plot.append(x)
     y_to_plot.append(y)
     line.set_ydata(y_to_plot)
