@@ -28,8 +28,8 @@ ax.set_xlabel('Wavelength (nm)')
 ax.set_ylabel('Intensity (Arb. Units.)')
 ax.xaxis.label.set_color('#ffb86c')
 ax.yaxis.label.set_color('#ffb86c')
-ax.set_xlim(500,600)
-ax.set_ylim(0,100)
+ax.set_xlim(500,520)
+ax.set_ylim(0,20)
 fig.tight_layout()
 line, = ax.plot(x, y, color = '#bd93f9')
 fig.patch.set_facecolor('#282a36')
@@ -209,11 +209,9 @@ def update_plot():
     y = spectra[iterator]
 
     # Check if x or y is outside the current plot range
-    x_limits = np.array(ax.get_xlim())
-    y_limits = np.array(ax.get_ylim())
     if init_graph == None or init_graph == "yes":
-        new_x_limits = [x, x + 100]
-        new_y_limits = [y, y + 100]
+        new_x_limits = [x, x + 20]
+        new_y_limits = [y, y + 20]
 
         ax.set_xlim(new_x_limits)
         ax.set_ylim(new_y_limits)
@@ -230,7 +228,8 @@ def update_plot():
         ax.figure.canvas.flush_events()  
         init_graph = "no"  
 
-
+    x_limits = np.array(ax.get_xlim())
+    y_limits = np.array(ax.get_ylim())
     update_x_higher = x > x_limits[1]
     update_y = y > y_limits[1]
 
@@ -238,8 +237,8 @@ def update_plot():
     
     if update_x_higher and update_y:
         # Update the plot limits
-        new_x_limits = [max(x_limits[0], x - 100), x_limits[1] + 100]
-        new_y_limits = [y_limits[0], max(y_limits[1], y + 100)] if update_y else y_limits
+        new_x_limits = [x_limits[0], max(x_limits[1], x + 20)] if update_x_higher else x_limits
+        new_y_limits = [y_limits[0], max(y_limits[1], y + 20)] if update_y else y_limits
 
         ax.set_xlim(new_x_limits)
         ax.set_ylim(new_y_limits)
@@ -257,7 +256,7 @@ def update_plot():
         ax.figure.canvas.flush_events()
 
     if update_y: 
-        new_y_limits = [y_limits[0], max(y_limits[1], y + 100)] if update_y else y_limits
+        new_y_limits = [y_limits[0], max(y_limits[1], y + 20)] if update_y else y_limits
         ax.set_ylim(new_y_limits)
         for tick in ax.yaxis.get_major_ticks():
             tick.label1.set_text(str(int(tick.get_loc())))
@@ -266,7 +265,7 @@ def update_plot():
         ax.figure.canvas.flush_events()
 
     if update_x_higher:
-        new_x_limits = [x_limits[0], max(x_limits[1], x + 100)] if update_x_higher else x_limits
+        new_x_limits = [x_limits[0], max(x_limits[1], x + 20)] if update_x_higher else x_limits
         ax.set_xlim(new_x_limits)
         # Update x-axis labels
         for tick in ax.xaxis.get_major_ticks():
