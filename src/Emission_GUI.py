@@ -39,6 +39,7 @@ for spine in ax.spines.values():
 """
 Global Vars
 """
+emulation_status = False
 daq = None
 spectrometer = None
 lockin = None
@@ -79,15 +80,21 @@ def validate_number(x) -> bool:
     else:
         return False
 
+
+
+
 def spectrometer_init():
     global spectrometer
+    global emulation_status 
     match spectrometer:
         case 'HR650':
-            spectrometer = HR640_Spectrometer(emulate=True)
-            if spectrometer.emulation == True:
+            
+            if emulation_status == True:
+                spectrometer = HR640_Spectrometer(emulate=True)
                 status_var.set('Emulated')
                 get_spectrometer_wl()
             else:
+                spectrometer = HR640_Spectrometer(emulate=False)
                 status_var.set('Initialised')  
                 get_spectrometer_wl()
         case 'iHR550':   
@@ -333,6 +340,15 @@ save_folder_var.set('')
 save_file_var = tk.StringVar()  
 save_file_var.set('')
 
+def getBool(): # get rid of the event argument
+    global emulation_status
+    emulation_status = boolvar.get()
+    print(emulation_status)
+
+boolvar =tk.BooleanVar()
+boolvar.set(False)
+
+
 go_to_var = tk.StringVar(value='')
 pane = tk.Frame(master)
 pane.grid(row=0, column=0, padx=10, pady=5)
@@ -354,6 +370,7 @@ daq_select.bind("<<ComboboxSelected>>",daq_dropdown)
 
 spec_init_button = tb.Button(pane, text='Initialise Spectrometer', command = spectrometer_init).grid(row=3, column=0, padx=5, pady=5)
 spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=3, column=1, padx=5, pady=5)
+emulate_button = tb.Checkbutton(pane, text = "Emulate", variable = boolvar, command = getBool).grid(row=0, column=0, padx=5, pady=5)
 
 
 spec_wl_button = tb.Label(pane, text='Current Wavelength:',).grid(row=4, column=0, padx=5, pady=5)
@@ -380,6 +397,8 @@ save_direct_label1 = tb.Label(pane,textvariable=save_folder_var).grid(row=11, co
 save_direct_label2 = tb.Label(pane,text = 'Save folder location:',).grid(row=11, column=0, padx=5, pady=5)
 file_name_label = tb.Label(pane,text = 'Save file name:',).grid(row=12, column=0, padx=5, pady=5)
 file_name_entry = tb.Entry(pane, textvariable = save_file_var,).grid(row=12, column=1, padx=5, pady=5)
+
+
 
 
 """""
