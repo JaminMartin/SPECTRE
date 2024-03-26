@@ -45,6 +45,7 @@ class HR640_Spectrometer:
     def connect(self):
             if not self.ser_ports:
                 print("No devices connected, or device is already connected")
+                self.instrument = 'not found'
             else:  
                 print(self.ser_ports)  
                 for port in self.ser_ports:
@@ -55,6 +56,7 @@ class HR640_Spectrometer:
                         print(self.wavelength) 
                     except:
                         print('Spectrometer device not found, try reconnecting') 
+                        self.instrument = 'not found'
 
     def get_wavelength(self,grating_factor = 1.5, calibration_factor = 27):
         if self.emulation == True:
