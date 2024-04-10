@@ -38,7 +38,7 @@ class HR640_Spectrometer:
                     print('Would you like to emulate the device instead?')
             else: 
                 self.instrument =  print("HR640 spectrometer Sucsessfully emulated")
-                self.wavelength = "600"
+                self.wavelength = "600.00"
             return
 
 
@@ -74,7 +74,13 @@ class HR640_Spectrometer:
     
     def goto_wavelength(self, wavlen, grating_factor = 1.5, calibration_factor = 27):
         if self.emulation == True:
-            self.wavelength = (str(wavlen))
+            try:
+                self.wavelength = '{0:.2f}'.format(wavlen)
+            except:
+                temp = float(wavlen)
+                print(temp)
+                self.wavelength = '{0:.2f}'.format(temp)    
+            #self.wavelength = (str(wavlen))
         else:    
 
             self.instrument.flushInput()
