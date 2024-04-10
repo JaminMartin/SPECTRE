@@ -14,6 +14,7 @@ from Helper_funcs import random_spectra , save_data, exp_auto_name, data_prep
 import time
 import datetime
 from datetime import date
+import os
 """
 Def Plot
 """
@@ -73,25 +74,26 @@ def get_save_direct():
 
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
-    if x.isdigit():
+    try:
+        float(x)
         return True
-    elif x == "":
-        return False
-    else:
+    except ValueError:
         return False
 
 
 
 
-def spectrometer_init():
+def instrument_init():
     global spectrometer
-    global emulation_status 
+    global emulation_status
+    global daq 
     match spectrometer:
         case 'HR650':
             
             if emulation_status == True:
                 spectrometer = HR640_Spectrometer(emulate=True)
                 status_var.set('Emulated')
+                print('test2')
                 get_spectrometer_wl()
             else:
                 spectrometer = HR640_Spectrometer(emulate=False)
@@ -99,6 +101,24 @@ def spectrometer_init():
                 get_spectrometer_wl()
         case 'iHR550':   
             print('not yet implemented')  
+    #placeholder logic for eventual addition of the daq.
+    match daq:
+        case _:
+            
+            if emulation_status == True:
+                daq = None
+                status_var.set('Emulated')
+            else:
+                daq = None
+                status_var.set("Debug")   
+                raise ValueError 
+                
+
+
+                       
+    
+
+
 
 def save():
     global x_to_plot
@@ -206,7 +226,7 @@ def scan():
         if spectrometer.emulation == True:
             pass
         else:
-            pass #spectra[iterator]= daq.get_data()
+            pass #spectra[iterator]= daq.measure()
         update_plot()
         get_spectrometer_wl()
         scan.i += 1
@@ -321,7 +341,16 @@ def update_plot():
   
 
 # creating Tk window and Tk Vars
-master = tb.Window(themename="dracula")  
+theme_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'theme.json'))
+style = tb.Style()
+style.load_user_themes(theme_path)
+style.theme_use('dracula')
+master = style.master
+ 
+
+
+
+
 status_var = tk.StringVar()
 status_var.set('Uninitialised')
 current_wl_var = tk.StringVar()  
@@ -340,7 +369,7 @@ save_folder_var.set('')
 save_file_var = tk.StringVar()  
 save_file_var.set('')
 
-def getBool(): # get rid of the event argument
+def getBool(): 
     global emulation_status
     emulation_status = boolvar.get()
     print(emulation_status)
@@ -368,7 +397,7 @@ daq_select = tb.Combobox(pane, values = daqs)
 daq_select.grid(row=2, column=1, padx=5, pady=5)
 daq_select.bind("<<ComboboxSelected>>",daq_dropdown)
 
-spec_init_button = tb.Button(pane, text='Initialise Spectrometer', command = spectrometer_init).grid(row=3, column=0, padx=5, pady=5)
+init_button = tb.Button(pane, text='Initialise', command = instrument_init).grid(row=3, column=0, padx=5, pady=5)
 spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=3, column=1, padx=5, pady=5)
 emulate_button = tb.Checkbutton(pane, text = "Emulate", variable = boolvar, command = getBool).grid(row=0, column=0, padx=5, pady=5)
 
