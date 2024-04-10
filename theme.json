@@ -1,0 +1,28 @@
+{
+    "themes": [
+      {
+        "dracula": {
+          "type": "dark",
+          "colors": {
+            "primary": "#6272A4",
+              "secondary": "#44475A",
+              "success": "#50FA7B",
+              "info": "#FF79C6",
+              "warning": "#FFB86C",
+              "danger": "#FF5555",
+              "light": "#adafae",
+              "dark": "#000000",
+              "bg": "#282A36",
+              "fg": "#F8F8F2",
+              "selectbg": "#454545",
+              "selectfg": "#F8F8F2",
+              "border": "#060606",
+              "inputfg": "#F8F8F2",
+              "inputbg": "#44475A",
+              "active": "#282828"
+          }
+        }
+      }
+    ]
+  }
+  
