@@ -64,7 +64,20 @@ def exp_auto_name():
     experiment_name = 'experiment_' + now_str
     return experiment_name
 
-def save_data(experiment_name, data_path, experiment_start ,experiment_completed, experimental_data):
+def make_config(spectrometer, scan_range, steps, number_data_points):
+    spectrometer_name = spectrometer.name
+    
+    config = ''
+    config += 'Emulated measurement?: ' + str("{}").format(spectrometer.emulation) + '\n'
+    config += 'Spectrometer: ' + spectrometer_name + '\n'
+    config += 'Scan range:  ' + scan_range + '\n'
+    config += 'Step size: ' + steps + '\n'
+    config += 'Number of data points: ' + str(number_data_points) + '\n' 
+    config += 'DAQ: Not yet fully implemented!' + '\n'
+    config += '\n'
+    return config
+
+def save_data(experiment_name, data_path, experiment_start , experiment_completed, experimental_data, config):
     '''
     Sets up the data to be logged regarding the experiment, 'out' is the string to append to (with \n for a new line) 
     that will be written. Can add more things as we find the need. 
@@ -82,7 +95,7 @@ def save_data(experiment_name, data_path, experiment_start ,experiment_completed
     out +='Date Completed: '+ experiment_completed + '\n'
     out += '\n\n'
     out += '%============================================%\nExperimental Configuration\n%============================================%\n\n\n'
-    #out += config
+    out += config + '\n'
     out += '%============================================%\nExperimental Data\n%============================================%\n\n\n'
     #to_save_data = data_prep(data)
     out += experimental_data + '\n'
