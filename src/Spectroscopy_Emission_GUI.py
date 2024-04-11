@@ -181,8 +181,10 @@ def start():
             scan_range()
             if spectrometer.emulation == True and interupt_type != 'pause':
                 spectra = random_spectra(s_range)
-            else: 
+            elif spectrometer.emulation == False and interupt_type != 'pause': 
                 spectra = np.zeros(len(s_range))
+            else:
+                pass    
             if interupt_type == 'stop' or interupt_type == 'finished':
                 y_to_plot = []
                 x_to_plot = []
