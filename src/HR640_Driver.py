@@ -39,6 +39,7 @@ class HR640_Spectrometer:
             else: 
                 self.instrument =  print("HR640 spectrometer Sucsessfully emulated")
                 self.wavelength = "600.00"
+                self.name = 'HR640'
             return
 
 
