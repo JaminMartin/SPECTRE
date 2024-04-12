@@ -1,9 +1,8 @@
-# RECLAS
-RECLAS - Rare-Earth Crystal Laser Analysis Suite.
+# SPECTRE
+SPECTRE - Spectroscopy and Photonics Equipment Control Toolkit for Research and Experimentation.
 
-A Library for controlling various experimental laser setups for the analysis of rare-earth doped crystals at the University of Canterbury
+A Library for controlling various experimental spectroscopy setups at the University of Canterbury. It also contains support tools for the analysis of spectra.
 
-#### To be renamed SPECTRE - "Spectroscopy and Photonics Equipment Control Toolkit for Research and Experimentation" at a later date. 
 
 <div align="center">
     <img src="./images/GUI_v2_windows.png" width="700" alt="GUI">
@@ -17,7 +16,7 @@ This is a current and ongoing project porting the experimental spectroscopy tool
 
 - Instead of adding device-level control for the data acquisition device, these should be set in a `config.toml` file. This way, the GUI remains simplified, and the acquisition parameters are abstracted away from the GUI and can be set elsewhere specific to that device or if the device supports it, the device itself (which is often easier in my experience). It makes it easy to swap out these devices to a lock-in amplifier, scope, or photon counter on the fly. Instead, the GUI can wait for the data from the specified device regardless of what it is. Specifying a path to these files makes it possible to have your own unique set of configurations that work for your experiment and minimises previous user presets impacting your experiment. 
 
-- Where possible device drivers are open sourced and Windows version-specific dependencies are minimised. This is unavoidable, but if it is possible to achieve windows independent functionality this should be strived for. This will make for more stable programs in the long term. 
+- Where possible device drivers are open sourced and Windows version-specific dependencies are minimised. This is unavoidable, but if it is possible to achieve Windows independent functionality this should be strived for. This will make for more stable programs in the long term. 
 
 # The remaining todo's of this project are pretty straightforward and are as follows:
 - ~~Add a drop-down menu to select the desired spectrometer~~
