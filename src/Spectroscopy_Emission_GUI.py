@@ -15,6 +15,7 @@ import time
 import datetime
 from datetime import date
 import os
+import toml
 """
 Def Plot
 """
@@ -53,6 +54,10 @@ spectra = []
 start_time = None
 stop_time = None
 init_graph = None
+config_file = None
+config_toml = None
+
+
 # functions that make the GUI work 
 
 def spectrometer_dropdown(e):
@@ -71,6 +76,20 @@ def daq_dropdown(e):
 def get_save_direct():
     save_directory = filedialog.askdirectory()
     save_folder_var.set(save_directory)
+
+def get_config_file():
+    global config_file
+    config_file = filedialog.askopenfilename()
+    config_file_base_name = os.path.basename(config_file)
+    config_file_var.set(config_file_base_name)
+    load_config(config_file)
+
+
+def load_config(path: str) -> dict:
+    global config_toml
+    with open(path, 'r') as f:
+        config_toml = toml.load(f)
+    print(config_toml['C8855']['number_of_gates'])
 
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
@@ -375,6 +394,9 @@ step_var.set('')
 save_folder_var = tk.StringVar()  
 save_folder_var.set('')
 
+config_file_var = tk.StringVar()  
+config_file_var.set('')
+
 save_file_var = tk.StringVar()  
 save_file_var.set('')
 
@@ -397,44 +419,49 @@ pane2.grid(row=0, column=1, padx=10, pady=5)
 # General layout of GUI
 spectrometers = ['HR650', 'iHR550']
 daqs = ['SIGLENT Scope', 'Tektronix Scope', 'C8855-01 Photon counter', 'lock-in']
-spectrometer_label = tb.Label(pane,text='Spectrometer',).grid(row=1, column=0, padx=5, pady=5)
-daq_label = tb.Label(pane,text='Signal source',).grid(row=1, column=1, padx=5, pady=5)
+
+config_direct_button = tb.Button(pane, text='::', command = get_config_file ).grid(row=1, column=3, padx=5, pady=5)
+config_direct_label1 = tb.Label(pane,textvariable=config_file_var).grid(row=1, column=1, padx=5, pady=5)
+config_direct_label2 = tb.Label(pane,text = 'Config file loaded:',).grid(row=1, column=0, padx=5, pady=5)
+
+spectrometer_label = tb.Label(pane,text='Spectrometer',).grid(row=2, column=0, padx=5, pady=5)
+daq_label = tb.Label(pane,text='Signal source',).grid(row=2, column=1, padx=5, pady=5)
 spectrometer_select = tb.Combobox(pane, values = spectrometers)
-spectrometer_select.grid(row=2, column=0,padx=5, pady=5)
+spectrometer_select.grid(row=3, column=0,padx=5, pady=5)
 spectrometer_select.bind("<<ComboboxSelected>>",spectrometer_dropdown)
 daq_select = tb.Combobox(pane, values = daqs)
-daq_select.grid(row=2, column=1, padx=5, pady=5)
+daq_select.grid(row=3, column=1, padx=5, pady=5)
 daq_select.bind("<<ComboboxSelected>>",daq_dropdown)
 
-init_button = tb.Button(pane, text='Initialise', command = instrument_init).grid(row=3, column=0, padx=5, pady=5)
-spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=3, column=1, padx=5, pady=5)
+init_button = tb.Button(pane, text='Initialise', command = instrument_init).grid(row=4, column=0, padx=5, pady=5)
+spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=4, column=1, padx=5, pady=5)
 emulate_button = tb.Checkbutton(pane, text = "Emulate", variable = boolvar, command = getBool).grid(row=0, column=0, padx=5, pady=5)
 
 
-spec_wl_button = tb.Label(pane, text='Current Wavelength:',).grid(row=4, column=0, padx=5, pady=5)
-current_wl_label = tb.Label(pane,textvariable=current_wl_var,).grid(row=4, column=1, padx=5, pady=5)
+spec_wl_button = tb.Label(pane, text='Current Wavelength:',).grid(row=5, column=0, padx=5, pady=5)
+current_wl_label = tb.Label(pane,textvariable=current_wl_var,).grid(row=5, column=1, padx=5, pady=5)
 
 
-spec_go_button = tb.Button(pane, text='Go to Wavelength', command = go_to_wavelength).grid(row=5, column=0, padx=5, pady=5)
-go_to_entry = tb.Entry(pane, textvariable = go_to_var).grid(row=5, column=1, padx=5, pady=5)
+spec_go_button = tb.Button(pane, text='Go to Wavelength', command = go_to_wavelength).grid(row=6, column=0, padx=5, pady=5)
+go_to_entry = tb.Entry(pane, textvariable = go_to_var).grid(row=6, column=1, padx=5, pady=5)
 
 
 
-start_params = tb.Label(pane,text='Start Wavelength',).grid(row=6, column=0, padx=5, pady=5)
-start_entry = tb.Entry(pane, textvariable = start_var).grid(row=6, column=1, padx=5, pady=5)
-stop_params = tb.Label(pane,text='Stop Wavelength',).grid(row=7, column=0, padx=5, pady=5)
-stop_entry = tb.Entry(pane, textvariable = stop_var).grid(row=7, column=1, padx=5, pady=5)
-step_params = tb.Label(pane,text='Step Size',).grid(row=8, column=0, padx=5, pady=5)
-step_entry = tb.Entry(pane, textvariable = step_var).grid(row=8, column=1, padx=5, pady=5)
-start_scan = tb.Button(pane, text='Start Scan',command = start ).grid(row=9, column=0, padx=5, pady=5)
-stop_scan = tb.Button(pane, text='Stop Scan',command = stop).grid(row=9, column=1, padx=5, pady=5)
-pause_scan = tb.Button(pane, text='Pause Scan',command = pause ).grid(row=10, column=0, padx=5, pady=5)
+start_params = tb.Label(pane,text='Start Wavelength',).grid(row=7, column=0, padx=5, pady=5)
+start_entry = tb.Entry(pane, textvariable = start_var).grid(row=7, column=1, padx=5, pady=5)
+stop_params = tb.Label(pane,text='Stop Wavelength',).grid(row=8, column=0, padx=5, pady=5)
+stop_entry = tb.Entry(pane, textvariable = stop_var).grid(row=8, column=1, padx=5, pady=5)
+step_params = tb.Label(pane,text='Step Size',).grid(row=9, column=0, padx=5, pady=5)
+step_entry = tb.Entry(pane, textvariable = step_var).grid(row=9, column=1, padx=5, pady=5)
+start_scan = tb.Button(pane, text='Start Scan',command = start ).grid(row=10, column=0, padx=5, pady=5)
+stop_scan = tb.Button(pane, text='Stop Scan',command = stop).grid(row=10, column=1, padx=5, pady=5)
+pause_scan = tb.Button(pane, text='Pause Scan',command = pause ).grid(row=11, column=0, padx=5, pady=5)
 
-save_direct_button = tb.Button(pane, text='::', command = get_save_direct ).grid(row=11, column=3, padx=5, pady=5)
-save_direct_label1 = tb.Label(pane,textvariable=save_folder_var).grid(row=11, column=1, padx=5, pady=5)
-save_direct_label2 = tb.Label(pane,text = 'Save folder location:',).grid(row=11, column=0, padx=5, pady=5)
-file_name_label = tb.Label(pane,text = 'Save file name:',).grid(row=12, column=0, padx=5, pady=5)
-file_name_entry = tb.Entry(pane, textvariable = save_file_var,).grid(row=12, column=1, padx=5, pady=5)
+save_direct_button = tb.Button(pane, text='::', command = get_save_direct ).grid(row=12, column=3, padx=5, pady=5)
+save_direct_label1 = tb.Label(pane,textvariable=save_folder_var).grid(row=12, column=1, padx=5, pady=5)
+save_direct_label2 = tb.Label(pane,text = 'Save folder location:',).grid(row=12, column=0, padx=5, pady=5)
+file_name_label = tb.Label(pane,text = 'Save file name:',).grid(row=13, column=0, padx=5, pady=5)
+file_name_entry = tb.Entry(pane, textvariable = save_file_var,).grid(row=13, column=1, padx=5, pady=5)
 
 
 
