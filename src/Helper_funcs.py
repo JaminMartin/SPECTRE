@@ -84,7 +84,6 @@ def config_toml_iter(config_toml: dict, connected_devices: list) -> str:
 
     
     config_temp = ''
-    print(config_toml.items())
     for device, device_info in config_toml.items():
         if device_info.get('device_name') in connected_devices:
             config_temp += 'Device: ' + device + '\n'

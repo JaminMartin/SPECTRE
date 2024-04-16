@@ -74,7 +74,8 @@ SPECTROMETER_DRIVERS = {
 }
 
 
-DAQ_DRIVERS = {'simulated daq': ('Simulated_Daq_Driver', 'Test_Daq')} 
+DAQ_DRIVERS = {'simulated daq': ('Simulated_Daq_Driver', 'Test_Daq'),
+               'SDS2352X-E': ('SIGLENT_Driver', 'SiglentSDS2352XE')} 
 # functions that make the GUI work 
 
 def spectrometer_dropdown(e):
@@ -317,12 +318,12 @@ def scan():
     global init_graph
   
     if scan.i < len(s_range) and scan.running == True:
-
+        # this is tempory logic why it is been developed out of the lab. 
         spectrometer.goto_wavelength(s_range[iterator])
         if spectrometer.emulation == True and daq.name == 'simulated daq':
             spectra[iterator]= daq.measure()
-        elif spectrometer.emulation == True:
-            pass
+        elif spectrometer.emulation == True and daq.name != 'simulated daq':
+            spectra[iterator]= daq.measure()
         else: 
              pass
              #spectra[iterator]= daq.measure()   
@@ -493,7 +494,7 @@ pane2.grid(row=0, column=1, padx=10, pady=5)
 
 # General layout of GUI
 spectrometers = ['HR640', 'iHR550']
-daqs = ['SIGLENT Scope', 'Tektronix Scope', 'C8855-01 Photon counter', 'lock-in', 'simulated daq']
+daqs = ['SDS2352X-E', 'Tektronix Scope', 'C8855-01 Photon counter', 'lock-in', 'simulated daq']
 
 config_direct_button = tb.Button(pane, text='::', command = get_config_file ).grid(row=1, column=3, padx=5, pady=5)
 config_direct_label1 = tb.Label(pane,textvariable=config_file_var).grid(row=1, column=1, padx=5, pady=5)

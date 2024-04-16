@@ -9,6 +9,11 @@ integration_time = 24
 num_averages = 10
 filtering = 'sav-gol'
 
+[SIGLENT_Scope]
+device_name = 'SDS2352X-E'
+trigger = 5
+x0 = 0
+x1 = 20
 
 [SP_Instrument]
 device_name = 'simulated support instrument'

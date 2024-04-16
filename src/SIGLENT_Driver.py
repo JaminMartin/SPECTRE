@@ -1,6 +1,6 @@
 import pyvisa
 import numpy as np
-
+import time
 class SiglentSDS2352XE:
     '''
     Class to create user-fiendly interface with the SiglentSDS2352X-E scope.
@@ -9,8 +9,9 @@ class SiglentSDS2352XE:
     note! cursors must be on for this method to work!
   
     '''
-    def __init__(self):
+    def __init__(self, config, emulate):
         rm = pyvisa.ResourceManager()
+        self.name = 'SDS2352X-E'
         self.resource_adress = 'not found'
         resources = rm.list_resources()
         for i in range(len(resources)):
@@ -21,6 +22,7 @@ class SiglentSDS2352XE:
                 if query == 'Siglent Technologies,SDS2352X-E,SDS2EDDQ6R0793,2.1.1.1.20 R3':
                     self.resource_adress = resources[i]
                     self.instrument = my_instrument
+                
             except:
                 pass        
         if self.resource_adress == 'not found':
@@ -93,12 +95,16 @@ class SiglentSDS2352XE:
     
     def measure(self):
        _, v = self.get_waveform()
+       time.sleep(0.5)
        return np.sum(v)
 
 
 if __name__ == "__main__":
-    scope = SiglentSDS2352XE()
+    scope = SiglentSDS2352XE("test", "test")
     x, y = scope.get_waveform()
     import matplotlib.pyplot as plt
     plt.plot(x,y)
     plt.show()
+    for i in range(100):
+        volts = scope.measure()
+        print(volts)
