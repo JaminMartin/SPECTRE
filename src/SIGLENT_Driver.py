@@ -1,5 +1,6 @@
 import pyvisa
 import numpy as np
+
 class SiglentSDS2352XE:
     '''
     Class to create user-fiendly interface with the SiglentSDS2352X-E scope.
@@ -89,6 +90,11 @@ class SiglentSDS2352XE:
         volt_value = np.asarray(volt_value)
         time_value  = np.asarray(time_value)
         return time_value , volt_value  
+    
+    def measure(self):
+       _, v = self.get_waveform()
+       return np.sum(v)
+
 
 if __name__ == "__main__":
     scope = SiglentSDS2352XE()
