@@ -1,4 +1,19 @@
 [C8855]
+device_name = 'C8855-01 Photon counter'
 number_of_gates = 512
 gate_time = "20ms"
 
+[Test_Daq]
+device_name = 'simulated daq'
+integration_time = 24
+num_averages = 10
+filtering = 'sav-gol'
+
+
+[SP_Instrument]
+device_name = 'simulated support instrument'
+laser_power = 50
+laser_temp = 80
+time_on = 100
+time_off = 50
+time_scale = 'ms'
