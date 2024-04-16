@@ -64,18 +64,37 @@ def exp_auto_name():
     experiment_name = 'experiment_' + now_str
     return experiment_name
 
-def make_config(spectrometer, scan_range, steps, number_data_points):
+def make_config(spectrometer, scan_range, steps, number_data_points, config_toml, connected_devices):
     spectrometer_name = spectrometer.name
-    
+    print(config_toml.items())
     config = ''
     config += 'Emulated measurement?: ' + str("{}").format(spectrometer.emulation) + '\n'
     config += 'Spectrometer: ' + spectrometer_name + '\n'
     config += 'Scan range:  ' + scan_range + '\n'
     config += 'Step size: ' + steps + '\n'
-    config += 'Number of data points: ' + str(number_data_points) + '\n' 
-    config += 'DAQ: Not yet fully implemented!' + '\n'
+    config += 'Number of data points: ' + str(number_data_points) + '\n\n' 
+    config += config_toml_iter(config_toml, connected_devices)
     config += '\n'
     return config
+
+def config_toml_iter(config_toml: dict, connected_devices: list) -> str:
+    '''
+    Take the loaded config toml file and iterate through it, returning lines of strings of the config file
+    '''
+
+    
+    config_temp = ''
+    print(config_toml.items())
+    for device, device_info in config_toml.items():
+        if device_info.get('device_name') in connected_devices:
+            config_temp += 'Device: ' + device + '\n'
+            for key, value in device_info.items():
+                config_temp += key + ': ' + str(value) + '\n'
+            config_temp += '\n'    
+    return config_temp
+
+
+
 
 def save_data(experiment_name, data_path, experiment_start , experiment_completed, experimental_data, config):
     '''
@@ -88,7 +107,7 @@ def save_data(experiment_name, data_path, experiment_start , experiment_complete
 
     The save portion will try save to the specified directory, if it cant - it will attempt to dump it into the current working directory    
     '''
-    experiment_name = experiment_name +'.txt'
+    experiment_name = experiment_name +'.spectre'
     experiment_name = name_checker((data_path + '/' + experiment_name))
     out = 'Experiment Name: '+ experiment_name + '\n'
     out +='Date Start: '+ experiment_start + '\n'
