@@ -4,7 +4,6 @@ from tkinter import filedialog
 import numpy as np 
 import ttkbootstrap as tb
 import pandas as pd        
-from HR640_Driver import HR640_Spectrometer
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -16,6 +15,7 @@ import datetime
 from datetime import date
 import os
 import toml
+import importlib
 """
 Def Plot
 """
@@ -42,6 +42,7 @@ for spine in ax.spines.values():
 Global Vars
 """
 emulation_status = False
+multi_connect_status = False
 daq = None
 spectrometer = None
 lockin = None
@@ -56,8 +57,24 @@ stop_time = None
 init_graph = None
 config_file = None
 config_toml = None
+connected_devices = []
 
 
+SUPPORTING_INSTRUMENT_DRIVERS = {
+    'Laser': ('Laser_Driver', 'LaserDriver'),
+    'PowerMeter': ('PowerMeter_Driver', 'PowerMeterDriver'),
+    'SP_Instrument': ('Simulated_Support_Driver', 'Test_Support')
+
+}
+
+SPECTROMETER_DRIVERS = {
+    'HR640': ('HR640_Driver', 'HR640_Spectrometer'),
+    'iHR550': ('IHR550_Driver', 'IHR550_Spectrometer'),
+    # Add other spectrometers here
+}
+
+
+DAQ_DRIVERS = {'simulated daq': ('Simulated_Daq_Driver', 'Test_Daq')} 
 # functions that make the GUI work 
 
 def spectrometer_dropdown(e):
@@ -79,17 +96,21 @@ def get_save_direct():
 
 def get_config_file():
     global config_file
+    global daq
     config_file = filedialog.askopenfilename()
     config_file_base_name = os.path.basename(config_file)
     config_file_var.set(config_file_base_name)
     load_config(config_file)
+    if status_var == 'Initialised' or 'Emulated':
+       daq = None
+       status_var.set('Uninitialised')
 
 
 def load_config(path: str) -> dict:
     global config_toml
     with open(path, 'r') as f:
         config_toml = toml.load(f)
-    print(config_toml['C8855']['number_of_gates'])
+  
 
 def validate_number(x) -> bool:
     """Validates that the input is a number"""
@@ -105,31 +126,75 @@ def validate_number(x) -> bool:
 def instrument_init():
     global spectrometer
     global emulation_status
-    global daq 
+    global daq
+    global config_toml 
+    global connected_devices
+
+    match config_toml:
+        case None:
+            print('No config file loaded')
+            return
+        
     match spectrometer:
-        case 'HR650':
-            
-            if emulation_status == True:
-                spectrometer = HR640_Spectrometer(emulate=True)
-                status_var.set('Emulated')
-                get_spectrometer_wl()
-            else:
-                spectrometer = HR640_Spectrometer(emulate=False)
-                status_var.set('Initialised')  
-                get_spectrometer_wl()
-        case 'iHR550':   
-            print('not yet implemented')  
-    #placeholder logic for eventual addition of the daq.
-    match daq:
+        case spectrometer if spectrometer in SPECTROMETER_DRIVERS:
+        
+            module_name, class_name = SPECTROMETER_DRIVERS[spectrometer]
+      
+            module = importlib.import_module(module_name)
+         
+            DriverClass = getattr(module, class_name)
+      
+            spectrometer = DriverClass(emulate=emulation_status)
+            get_spectrometer_wl()
+            connected_devices.append(spectrometer.name)  
         case _:
+            print(f'Unknown spectrometer: {spectrometer}') 
+
+    match daq:
+
+        case daq if daq in DAQ_DRIVERS:
+                
+                    module_name, class_name = DAQ_DRIVERS[daq]
             
-            if emulation_status == True:
-                daq = None
-                status_var.set('Emulated')
-            else:
-                daq = None
-                status_var.set("Debug")   
-                raise ValueError 
+                    module = importlib.import_module(module_name)
+          
+                    DriverClass = getattr(module, class_name)
+            
+                    daq = DriverClass(config_toml, emulate=emulation_status)
+                    
+                    connected_devices.append(daq.name)  
+        case _:
+            print(f'Unknown daq: {daq}')
+    if multi_connect_status == True:   
+        print('loading multiple devices')     
+        ignored_devices = set(DAQ_DRIVERS.keys()).union(SPECTROMETER_DRIVERS.keys())
+        
+        for device, device_info in config_toml.items():
+     
+            if device in ignored_devices:
+                continue
+
+          
+            if device in SUPPORTING_INSTRUMENT_DRIVERS:
+                
+          
+                module_name, class_name = SUPPORTING_INSTRUMENT_DRIVERS[device]
+    
+                module = importlib.import_module(module_name)
+
+                DriverClass = getattr(module, class_name)
+
+                
+                instrument = DriverClass(config_toml)
+
+            
+                connected_devices.append(instrument.name) 
+
+    print(f'connected devices: {connected_devices} ')
+    if emulation_status == True:
+        status_var.set('Emulated')
+    else:
+        status_var.set('Initialised')             
                 
 
 
@@ -142,6 +207,7 @@ def save():
     global x_to_plot
     global y_to_plot
     global s_range
+    global config_toml
     start_wl = start_var.get()
     stop_wl = stop_var.get()
     step_wl = step_var.get()
@@ -157,7 +223,7 @@ def save():
     print(save_file)
     save_folder = str(save_folder_var.get())
     print(save_folder)
-    config = make_config(spectrometer, config_range, step_wl, data_points)
+    config = make_config(spectrometer, config_range, step_wl, data_points, config_toml, connected_devices)
     save_data(save_file, save_folder, start_time, stop_time, results, config)
 
        
@@ -189,6 +255,9 @@ def scan_range():
 def start():
         if scan.running == True: 
             pass 
+        elif status_var.get() == 'Uninitialised':
+            print('Devices not initialised')
+            pass
         else:
             global interupt_type 
             global x_to_plot
@@ -250,10 +319,13 @@ def scan():
     if scan.i < len(s_range) and scan.running == True:
 
         spectrometer.goto_wavelength(s_range[iterator])
-        if spectrometer.emulation == True:
+        if spectrometer.emulation == True and daq.name == 'simulated daq':
+            spectra[iterator]= daq.measure()
+        elif spectrometer.emulation == True:
             pass
-        else:
-            pass #spectra[iterator]= daq.measure()
+        else: 
+             pass
+             #spectra[iterator]= daq.measure()   
         update_plot()
         get_spectrometer_wl()
         scan.i += 1
@@ -402,12 +474,15 @@ save_file_var.set('')
 
 def getBool(): 
     global emulation_status
-    emulation_status = boolvar.get()
-    print(emulation_status)
+    global multi_connect_status
+    emulation_status = boolvar_emulation.get()
+    multi_connect_status = boolvar_multi.get()
 
-boolvar =tk.BooleanVar()
-boolvar.set(False)
+boolvar_emulation =tk.BooleanVar()
+boolvar_emulation.set(False)
 
+boolvar_multi =tk.BooleanVar()
+boolvar_multi.set(False)
 
 go_to_var = tk.StringVar(value='')
 pane = tk.Frame(master)
@@ -417,8 +492,8 @@ pane2.grid(row=0, column=1, padx=10, pady=5)
 
 
 # General layout of GUI
-spectrometers = ['HR650', 'iHR550']
-daqs = ['SIGLENT Scope', 'Tektronix Scope', 'C8855-01 Photon counter', 'lock-in']
+spectrometers = ['HR640', 'iHR550']
+daqs = ['SIGLENT Scope', 'Tektronix Scope', 'C8855-01 Photon counter', 'lock-in', 'simulated daq']
 
 config_direct_button = tb.Button(pane, text='::', command = get_config_file ).grid(row=1, column=3, padx=5, pady=5)
 config_direct_label1 = tb.Label(pane,textvariable=config_file_var).grid(row=1, column=1, padx=5, pady=5)
@@ -435,8 +510,8 @@ daq_select.bind("<<ComboboxSelected>>",daq_dropdown)
 
 init_button = tb.Button(pane, text='Initialise', command = instrument_init).grid(row=4, column=0, padx=5, pady=5)
 spec_status_label = tb.Label(pane,textvariable=status_var,).grid(row=4, column=1, padx=5, pady=5)
-emulate_button = tb.Checkbutton(pane, text = "Emulate", variable = boolvar, command = getBool).grid(row=0, column=0, padx=5, pady=5)
-
+emulate_button = tb.Checkbutton(pane, text = "Emulate", variable = boolvar_emulation, command = getBool).grid(row=0, column=0, padx=5, pady=5)
+multiconnect_button = tb.Checkbutton(pane, text = "Multi-connect", variable = boolvar_multi, command = getBool).grid(row=0, column=1, padx=5, pady=5)
 
 spec_wl_button = tb.Label(pane, text='Current Wavelength:',).grid(row=5, column=0, padx=5, pady=5)
 current_wl_label = tb.Label(pane,textvariable=current_wl_var,).grid(row=5, column=1, padx=5, pady=5)
