@@ -1,3 +1,7 @@
-matplotlib==3.7.0
-numpy==1.23.5
-ttkbootstrap==1.10.1
+matplotlib == 3.8.3
+numpy == 1.26.4
+pandas == 2.2.1
+pyserial == 3.5
+PyVISA == 1.14.1
+toml == 0.10.2
+ttkbootstrap == 1.10.1
