@@ -22,6 +22,7 @@ This is a current and ongoing project porting the experimental spectroscopy tool
 - ~~Add a drop-down menu to select the desired spectrometer~~
 - ~~Add a drop-down menu for the desired data acquisition device (e.g. oscilloscope/photon counter)~~
 - ~~Add ttkboostrap custom colours injector script. This project relies heavily on the [Dracula colour palette](https://draculatheme.com/). It affords excellent readability/colour contrast in a dark laser lab while sufficiently dark to minimise light pollution. This is not a default colour palette of ttkboostrap, and so a custom script must be written to add it in at installation.~~
+- migrate project to depend on `spcs_instruments` 
 - implement DAQ measure functionality both for the GUI and devices such as photon counter. 
 - Produce some examples of configuring DAQ
 - Expand documentation 
